@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propertymark AI Complaint Handler</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="googlebot" content="noindex, nofollow">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #F5F5F5;
+  color: #1C1C1C;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4 { font-family: Georgia, 'Times New Roman', serif; }
+
+header {
+  background: #1C1C1C;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+header img {
+  height: 28px;
+}
+
+header .fallback-logo {
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+header h1 {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  font-family: Arial, sans-serif;
+  opacity: 0.85;
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+/* API key row */
+.api-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.api-row label {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.api-row input {
+  flex: 1;
+  max-width: 380px;
+  padding: 7px 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 13px;
+  font-family: monospace;
+}
+
+/* Section headings */
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #3D6B4A;
+  margin-bottom: 8px;
+}
+
+/* Example buttons */
+.examples-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.examples-row button {
+  padding: 7px 14px;
+  font-size: 12.5px;
+  border: 1px solid #3D6B4A;
+  background: #EBF3EE;
+  color: #3D6B4A;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.examples-row button:hover {
+  background: #3D6B4A;
+  color: #fff;
+}
+
+/* Textarea */
+textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #3D6B4A;
+}
+
+/* Primary button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 22px;
+  background: #3D6B4A;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary:hover { background: #2f5439; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Loading overlay */
+.loading-msg {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: #EBF3EE;
+  border: 1px solid #c5dcc9;
+  border-radius: 3px;
+  font-size: 13px;
+  color: #3D6B4A;
+}
+
+.loading-msg .spinner {
+  border-color: rgba(61,107,74,0.25);
+  border-top-color: #3D6B4A;
+}
+
+.loading-msg.visible { display: flex; }
+
+/* Error */
+.error-box {
+  display: none;
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: #fdecea;
+  border: 1px solid #e4a8a1;
+  border-radius: 3px;
+  color: #9b2c2c;
+  font-size: 13px;
+}
+
+.error-box.visible { display: block; }
+
+/* Case brief panel */
+#caseBriefPanel {
+  display: none;
+  margin-top: 28px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+}
+
+#caseBriefPanel.visible { display: block; }
+
+.brief-header {
+  background: #3D6B4A;
+  color: #fff;
+  padding: 12px 18px;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  border-radius: 3px 3px 0 0;
+}
+
+.brief-body { padding: 18px; }
+
+/* Risk pill */
+.risk-pill {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.risk-high { background: #e74c3c; color: #fff; }
+.risk-medium { background: #f39c12; color: #fff; }
+.risk-low { background: #27ae60; color: #fff; }
+
+/* Brief sections */
+.brief-section {
+  margin-top: 18px;
+}
+
+.brief-section h3 {
+  font-size: 14px;
+  color: #3D6B4A;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+.flags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.flag-tag {
+  background: #e74c3c;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.summary-text {
+  font-size: 14px;
+  margin-top: 6px;
+  padding: 10px 14px;
+  background: #EBF3EE;
+  border-radius: 3px;
+}
+
+/* Tables */
+.brief-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.brief-table th {
+  text-align: left;
+  background: #f0f0f0;
+  padding: 7px 10px;
+  font-weight: 600;
+  border: 1px solid #ddd;
+}
+
+.brief-table td {
+  padding: 7px 10px;
+  border: 1px solid #ddd;
+  vertical-align: top;
+}
+
+.classification-real { color: #e74c3c; font-weight: 600; }
+.classification-noise { color: #999; }
+
+.status-current { color: #27ae60; font-weight: 600; }
+.status-superseded { color: #999; text-decoration: line-through; }
+.status-inapplicable { color: #999; }
+
+.priority-high { color: #e74c3c; font-weight: 600; }
+.priority-medium { color: #f39c12; font-weight: 600; }
+.priority-low { color: #999; }
+
+.response-points-list {
+  padding-left: 20px;
+}
+
+.response-points-list li {
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
+/* Draft response section */
+#draftSection {
+  display: none;
+  margin-top: 28px;
+}
+
+#draftSection.visible { display: block; }
+
+#draftSection textarea {
+  min-height: 300px;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+/* Footer */
+footer {
+  margin-top: 40px;
+  padding: 16px 0;
+  border-top: 1px solid #ddd;
+  font-size: 11.5px;
+  color: #888;
+  text-align: center;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://www.propertymark.co.uk/assets/img/propertymark-logo-white.svg" alt="Propertymark" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+  <span class="fallback-logo" style="display:none">PROPERTYMARK</span>
+  <h1>AI Complaint Handler &mdash; Demo Build</h1>
+</header>
+
+<div class="container">
+
+  <!-- API Key -->
+  <div class="api-row">
+    <label for="apiKey">Anthropic API key</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-...">
+  </div>
+
+  <!-- Example complaints -->
+  <div class="section-title">Load example complaint</div>
+  <div class="examples-row">
+    <button onclick="loadExample(0)">Deposit dispute</button>
+    <button onclick="loadExample(1)">Uninhabitable property</button>
+    <button onclick="loadExample(2)">Boiler + disability</button>
+    <button onclick="loadExample(3)">Retaliatory possession</button>
+  </div>
+
+  <!-- Complaint input -->
+  <textarea id="complaintText" placeholder="Paste the tenant complaint letter here..."></textarea>
+
+  <!-- Analyse button -->
+  <button class="btn-primary" id="analyseBtn" onclick="analyseComplaint()">Analyse complaint</button>
+
+  <div class="loading-msg" id="analyseLoading">
+    <div class="spinner"></div>
+    <span>Analysing complaint — this may take a moment...</span>
+  </div>
+
+  <div class="error-box" id="analyseError"></div>
+
+  <!-- Case brief panel -->
+  <div id="caseBriefPanel">
+    <div class="brief-header">Case Brief</div>
+    <div class="brief-body" id="briefBody"></div>
+    <div style="padding: 0 18px 18px;">
+      <button class="btn-primary" id="draftBtn" onclick="draftResponse()">Draft response letter</button>
+      <div class="loading-msg" id="draftLoading">
+        <div class="spinner"></div>
+        <span>Drafting response letter...</span>
+      </div>
+      <div class="error-box" id="draftError"></div>
+    </div>
+  </div>
+
+  <!-- Draft response -->
+  <div id="draftSection">
+    <div class="section-title">Draft Response Letter (editable)</div>
+    <textarea id="draftText"></textarea>
+  </div>
+
+  <footer>
+    Case brief and draft response for agent review only &mdash; no response to be sent without senior agent sign-off. Built in partnership with Fresh Strategy GmbH.
+  </footer>
+</div>
+
+<script>
+const EXAMPLES = [
+  `Letter Before Action. Deposit paid £1,500 on 20 December 2023. Certificate of protection (mydeposits) shows protection start date 8 January 2024 — deposit held unprotected for 18 days. I was not provided the certificate until 24 June 2025. Under Section 213 Housing Act 2004 the deposit must be protected within 30 days. I seek return of deposit plus 3× statutory penalty totalling £6,000 within 14 days.`,
+  `I am formally terminating my tenancy. No heating at handover. No hot water for several days. Complete loss of electricity due to undisclosed prepayment meter. Multiple external doors inoperable. Under the Homes (Fitness for Human Habitation) Act 2018 the property was never fit for occupation. Under Section 11 Landlord & Tenant Act 1985 the landlord breached repair obligations. I require full rent refund and deposit return.`,
+  `Boiler repair appointment cancelled without notice. This breaches Section 11 LTA 1985 and HHSBA 2018. The landlord must not attend personally — my partner has CPTSD, a protected disability under Equality Act 2010, and his attendance causes distress. A reasonable adjustment (s20/21 Equality Act) requires a neutral qualified engineer. I reserve the right to claim loss of earnings from the cancelled appointment.`,
+  `The possession notice was issued days after I requested CCTV footage of a guest injury. It contains admitted administrative errors and fails to specify grounds (sale vs personal occupation). I am the only tenant in the building to receive such a notice. The Renters' Rights Act 2025 (Royal Assent 27 Oct 2025) reflects Parliament's clear intent to prevent retaliatory eviction. I reserve all rights to challenge this notice's validity.`
+];
+
+let caseBriefJSON = null;
+
+function loadExample(i) {
+  document.getElementById('complaintText').value = EXAMPLES[i];
+}
+
+function getApiKey() {
+  return document.getElementById('apiKey').value.trim();
+}
+
+function showError(elId, msg) {
+  const el = document.getElementById(elId);
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function hideError(elId) {
+  document.getElementById(elId).classList.remove('visible');
+}
+
+function showLoading(elId) {
+  document.getElementById(elId).classList.add('visible');
+}
+
+function hideLoading(elId) {
+  document.getElementById(elId).classList.remove('visible');
+}
+
+async function callAnthropic(systemPrompt, userMessage, errorElId) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error('Please enter your Anthropic API key.');
+  }
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5-20250514',
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMessage }]
+    })
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    let msg = `API error ${res.status}`;
+    try { msg = JSON.parse(body).error?.message || msg; } catch {}
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+async function analyseComplaint() {
+  const complaint = document.getElementById('complaintText').value.trim();
+  if (!complaint) return showError('analyseError', 'Please paste a complaint first.');
+
+  hideError('analyseError');
+  hideError('draftError');
+  document.getElementById('caseBriefPanel').classList.remove('visible');
+  document.getElementById('draftSection').classList.remove('visible');
+  caseBriefJSON = null;
+
+  const btn = document.getElementById('analyseBtn');
+  btn.disabled = true;
+  showLoading('analyseLoading');
+
+  const systemPrompt = `You are an expert AI assistant specialising in UK residential lettings law and complaint handling for property agents. Analyse tenant complaints and produce a structured case brief.
+
+You know: Housing Act 2004 (s213, s214 deposit protection), Landlord and Tenant Act 1985 (s11 repairs), Homes (Fitness for Human Habitation) Act 2018, Equality Act 2010, Renters' Rights Act 2025 (Royal Assent 27 Oct 2025), Pre-Action Protocol, TPO codes of practice, mydeposits/DPS/TDS scheme rules, Kenny v Preen (quiet enjoyment), Section 21/Section 8 possession.
+
+Respond ONLY with valid JSON, no preamble, no markdown fences:
+{
+  "summary": "One sentence describing the complaint",
+  "risk_level": "High|Medium|Low",
+  "risk_rationale": "One sentence explaining risk",
+  "issues": [
+    {"issue": "description", "classification": "real|noise", "notes": "brief agent note"}
+  ],
+  "legislation_map": [
+    {"act": "act name", "status": "current|superseded|inapplicable", "applies": true, "note": "why"}
+  ],
+  "evidence_required": [
+    {"item": "what to retrieve", "system": "CRM|Maintenance|Banking|Comms|Documents", "priority": "high|medium|low"}
+  ],
+  "response_points": ["key point to address in response"],
+  "flags": ["urgent flags — court deadlines, discrimination risk, etc"]
+}`;
+
+  try {
+    const raw = await callAnthropic(systemPrompt, `Analyse this complaint:\n\n${complaint}`);
+    caseBriefJSON = JSON.parse(raw);
+    renderCaseBrief(caseBriefJSON);
+    document.getElementById('caseBriefPanel').classList.add('visible');
+  } catch (e) {
+    showError('analyseError', e.message);
+  } finally {
+    btn.disabled = false;
+    hideLoading('analyseLoading');
+  }
+}
+
+function renderCaseBrief(b) {
+  const el = document.getElementById('briefBody');
+  let html = '';
+
+  // Risk level
+  const riskClass = { High: 'risk-high', Medium: 'risk-medium', Low: 'risk-low' }[b.risk_level] || 'risk-medium';
+  html += `<span class="risk-pill ${riskClass}">${esc(b.risk_level)} Risk</span>`;
+  html += `<span style="margin-left:12px;font-size:13px;color:#666">${esc(b.risk_rationale)}</span>`;
+
+  // Flags
+  if (b.flags && b.flags.length) {
+    html += `<div class="flags-list">`;
+    b.flags.forEach(f => { html += `<span class="flag-tag">${esc(f)}</span>`; });
+    html += `</div>`;
+  }
+
+  // Summary
+  html += `<div class="summary-text">${esc(b.summary)}</div>`;
+
+  // Issues
+  html += `<div class="brief-section"><h3>Issues Identified</h3>
+    <table class="brief-table"><tr><th>Issue</th><th>Classification</th><th>Notes</th></tr>`;
+  (b.issues || []).forEach(i => {
+    const cls = i.classification === 'real' ? 'classification-real' : 'classification-noise';
+    html += `<tr><td>${esc(i.issue)}</td><td class="${cls}">${esc(i.classification)}</td><td>${esc(i.notes)}</td></tr>`;
+  });
+  html += `</table></div>`;
+
+  // Legislation map
+  html += `<div class="brief-section"><h3>Legislation Map</h3>
+    <table class="brief-table"><tr><th>Act</th><th>Status</th><th>Applies</th><th>Note</th></tr>`;
+  (b.legislation_map || []).forEach(l => {
+    const cls = `status-${l.status}`;
+    html += `<tr><td>${esc(l.act)}</td><td class="${cls}">${esc(l.status)}</td><td>${l.applies ? 'Yes' : 'No'}</td><td>${esc(l.note)}</td></tr>`;
+  });
+  html += `</table></div>`;
+
+  // Evidence required
+  html += `<div class="brief-section"><h3>Evidence Required</h3>
+    <table class="brief-table"><tr><th>Item</th><th>System</th><th>Priority</th></tr>`;
+  (b.evidence_required || []).forEach(e => {
+    const cls = `priority-${e.priority}`;
+    html += `<tr><td>${esc(e.item)}</td><td>${esc(e.system)}</td><td class="${cls}">${esc(e.priority)}</td></tr>`;
+  });
+  html += `</table></div>`;
+
+  // Response points
+  html += `<div class="brief-section"><h3>Response Points</h3><ol class="response-points-list">`;
+  (b.response_points || []).forEach(p => { html += `<li>${esc(p)}</li>`; });
+  html += `</ol></div>`;
+
+  el.innerHTML = html;
+}
+
+async function draftResponse() {
+  if (!caseBriefJSON) return;
+  const complaint = document.getElementById('complaintText').value.trim();
+
+  hideError('draftError');
+  document.getElementById('draftSection').classList.remove('visible');
+
+  const btn = document.getElementById('draftBtn');
+  btn.disabled = true;
+  showLoading('draftLoading');
+
+  const systemPrompt = `You are an expert property agent responding to a formal tenant complaint on behalf of a UK letting agency.
+Write a professional, legally careful response letter.
+
+Rules:
+- Acknowledge every genuine issue identified in the case brief
+- Do not admit liability — use measured, professional language
+- Reference legislation accurately only where it helps the agent's position
+- Request evidence or clarification where needed
+- Propose next steps (dispute registration, inspection, etc.)
+- Tone: formal, calm, factual — not defensive or dismissive
+- Sign off as: "[Agent Name], [Agency Name]" with placeholder brackets
+- Length: 250-400 words
+- Do NOT invent facts not present in the complaint or case brief
+
+Return plain text only — a ready-to-edit letter.`;
+
+  const userMsg = `Using this case brief: ${JSON.stringify(caseBriefJSON)}\n\nAnd this original complaint:\n${complaint}\n\nWrite a professional response letter.`;
+
+  try {
+    const letter = await callAnthropic(systemPrompt, userMsg);
+    document.getElementById('draftText').value = letter;
+    document.getElementById('draftSection').classList.add('visible');
+  } catch (e) {
+    showError('draftError', e.message);
+  } finally {
+    btn.disabled = false;
+    hideLoading('draftLoading');
+  }
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+// Iframe auto-resize: report height to parent window
+function reportHeight() {
+  window.parent.postMessage({ height: document.body.scrollHeight }, '*');
+}
+const ro = new ResizeObserver(reportHeight);
+ro.observe(document.body);
+</script>
+
+</body>
+</html>
