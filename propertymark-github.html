@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="googlebot" content="noindex, nofollow">
+<title>Propertymark AI Complaint Handler</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; background: #F5F5F5; color: #1C1C1C; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: Georgia, 'Times New Roman', serif; }
+
+.pm-header { background: #1C1C1C; padding: 14px 24px; display: flex; align-items: center; gap: 18px; }
+.pm-header img { height: 28px; }
+.pm-header .pm-fallback-logo { color: #fff; font-family: Arial; font-weight: 700; font-size: 18px; letter-spacing: 2px; }
+.pm-header h1 { color: #fff; font-size: 16px; font-weight: 400; font-family: Arial; opacity: 0.85; }
+
+.container { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
+
+.pm-api-row { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+.pm-api-row label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.pm-api-row input { flex: 1; max-width: 380px; padding: 7px 10px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; font-family: monospace; }
+
+.pm-section-title { font-size: 15px; font-weight: 600; color: #3D6B4A; margin-bottom: 8px; }
+
+.pm-examples { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.pm-examples button { padding: 7px 14px; font-size: 12.5px; border: 1px solid #3D6B4A; background: #EBF3EE; color: #3D6B4A; border-radius: 3px; cursor: pointer; font-weight: 600; transition: background 0.15s; }
+.pm-examples button:hover { background: #3D6B4A; color: #fff; }
+
+textarea { width: 100%; min-height: 200px; padding: 12px; border: 1px solid #ccc; border-radius: 3px; font-size: 14px; font-family: Arial, sans-serif; resize: vertical; line-height: 1.55; }
+textarea:focus { outline: none; border-color: #3D6B4A; }
+
+.pm-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 22px; background: #3D6B4A; color: #fff; border: none; border-radius: 3px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.pm-btn:hover { background: #2f5439; }
+.pm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pm-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(61,107,74,0.25); border-top-color: #3D6B4A; border-radius: 50%; animation: pm-spin 0.6s linear infinite; }
+@keyframes pm-spin { to { transform: rotate(360deg); } }
+
+.pm-loading { display: none; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 16px; background: #EBF3EE; border: 1px solid #c5dcc9; border-radius: 3px; font-size: 13px; color: #3D6B4A; }
+.pm-loading.pm-visible { display: flex; }
+
+.pm-error { display: none; margin-top: 14px; padding: 12px 16px; background: #fdecea; border: 1px solid #e4a8a1; border-radius: 3px; color: #9b2c2c; font-size: 13px; }
+.pm-error.pm-visible { display: block; }
+
+#pmCaseBriefPanel { display: none; margin-top: 28px; border: 1px solid #ccc; border-radius: 3px; background: #fff; }
+#pmCaseBriefPanel.pm-visible { display: block; }
+
+.pm-brief-header { background: #3D6B4A; color: #fff; padding: 12px 18px; font-family: Georgia, serif; font-size: 16px; border-radius: 3px 3px 0 0; }
+.pm-brief-body { padding: 18px; }
+
+.pm-risk-pill { display: inline-block; padding: 4px 14px; border-radius: 3px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.pm-risk-high { background: #e74c3c; color: #fff; }
+.pm-risk-medium { background: #f39c12; color: #fff; }
+.pm-risk-low { background: #27ae60; color: #fff; }
+
+.pm-brief-section { margin-top: 18px; }
+.pm-brief-section h3 { font-size: 14px; color: #3D6B4A; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; margin-bottom: 10px; }
+
+.pm-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pm-flag { background: #e74c3c; color: #fff; padding: 3px 10px; border-radius: 3px; font-size: 12px; font-weight: 600; }
+
+.pm-summary { font-size: 14px; margin-top: 6px; padding: 10px 14px; background: #EBF3EE; border-radius: 3px; }
+
+.pm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pm-table th { text-align: left; background: #f0f0f0; padding: 7px 10px; font-weight: 600; border: 1px solid #ddd; }
+.pm-table td { padding: 7px 10px; border: 1px solid #ddd; vertical-align: top; }
+
+.pm-cls-real { color: #e74c3c; font-weight: 600; }
+.pm-cls-noise { color: #999; }
+.pm-st-current { color: #27ae60; font-weight: 600; }
+.pm-st-superseded { color: #999; text-decoration: line-through; }
+.pm-st-inapplicable { color: #999; }
+.pm-pri-high { color: #e74c3c; font-weight: 600; }
+.pm-pri-medium { color: #f39c12; font-weight: 600; }
+.pm-pri-low { color: #999; }
+
+.pm-response-list { padding-left: 20px; }
+.pm-response-list li { margin-bottom: 5px; font-size: 13px; }
+
+#pmDraftSection { display: none; margin-top: 28px; }
+#pmDraftSection.pm-visible { display: block; }
+#pmDraftSection textarea { min-height: 300px; font-size: 13.5px; line-height: 1.65; }
+
+.pm-footer { margin-top: 40px; padding: 16px 0; border-top: 1px solid #ddd; font-size: 11.5px; color: #888; text-align: center; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="pm-header">
+  <img src="https://www.propertymark.co.uk/assets/img/propertymark-logo-white.svg" alt="Propertymark" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+  <span class="pm-fallback-logo" style="display:none">PROPERTYMARK</span>
+  <h1>AI Complaint Handler &mdash; Demo Build</h1>
+</div>
+
+<div class="container">
+  <div class="pm-api-row">
+    <label for="pmApiKey">Anthropic API key</label>
+    <input type="password" id="pmApiKey" placeholder="sk-ant-...">
+  </div>
+
+  <div class="pm-section-title">Load example complaint</div>
+  <div class="pm-examples">
+    <button onclick="pmLoadExample(0)">1: Deposit (Housing Act)</button>
+    <button onclick="pmLoadExample(1)">2: Uninhabitable (HHSBA)</button>
+    <button onclick="pmLoadExample(2)">3: Boiler + disability</button>
+    <button onclick="pmLoadExample(3)">4: Retaliatory possession</button>
+    <button onclick="pmLoadExample(4)">5: Possession + CCTV</button>
+  </div>
+
+  <textarea id="pmComplaintText" placeholder="Paste the tenant complaint letter here..."></textarea>
+
+  <button class="pm-btn" id="pmAnalyseBtn" onclick="pmAnalyse()">Analyse complaint</button>
+
+  <div class="pm-loading" id="pmAnalyseLoading">
+    <div class="pm-spinner"></div>
+    <span>Analysing complaint &mdash; this may take a moment...</span>
+  </div>
+  <div class="pm-error" id="pmAnalyseError"></div>
+
+  <div id="pmCaseBriefPanel">
+    <div class="pm-brief-header">Case Brief</div>
+    <div class="pm-brief-body" id="pmBriefBody"></div>
+    <div style="padding: 0 18px 18px;">
+      <button class="pm-btn" id="pmDraftBtn" onclick="pmDraft()">Draft response letter</button>
+      <div class="pm-loading" id="pmDraftLoading">
+        <div class="pm-spinner"></div>
+        <span>Drafting response letter...</span>
+      </div>
+      <div class="pm-error" id="pmDraftError"></div>
+    </div>
+  </div>
+
+  <div id="pmDraftSection">
+    <div class="pm-section-title">Draft Response Letter (editable)</div>
+    <textarea id="pmDraftText"></textarea>
+  </div>
+
+  <div class="pm-footer">
+    Case brief and draft response for agent review only &mdash; no response to be sent without senior agent sign-off. Built in partnership with Fresh Strategy GmbH.
+  </div>
+</div>
+
+<script>
+// Receive API key from parent (Squarespace) via postMessage
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.pmApiKey) {
+    document.getElementById('pmApiKey').value = e.data.pmApiKey;
+  }
+});
+
+// Report height to parent for iframe auto-resize
+function reportHeight() {
+  window.parent.postMessage({ height: document.body.scrollHeight }, '*');
+}
+var ro = new ResizeObserver(reportHeight);
+ro.observe(document.body);
+
+var PM_EXAMPLES = [
+  "Letter Before Action \u2014 Reply to XXXXX\u2019s Response and Final Demand\nDate: 10 October 2025\n\nRe: Final demand for return of tenancy deposit and statutory penalty (Housing Act 2004)\n\nDear Sirs,\n\nI refer to (i) my previous correspondence and Letter Before Action, (ii) your recent reply to me, and (iii) the tenancy documentation and deposit certificate in my possession. I have considered your response carefully. This letter is a formal final demand and a direct response to the points made in your earlier communication. It is issued under the Pre-Action Protocol and the Civil Procedure Rules.\n\nPlease treat this as a Letter Before Action. If you do not remedy the matters set out below within 14 days (by 24 October 2025) I will issue court proceedings against both the agent and landlord seeking the return of the deposit, a statutory penalty of 3\u00d7 the deposit, interest and my recoverable costs.\n\n1. Summary of the key facts (admitted / evidenced)\nDeposit paid: \u00a31,500 (paid 20/21 December 2023).\nTenancy start: 22 December 2023. Tenancy end / tenant vacated: 6 June 2025.\nInventory / check-out report provided to me: 24 June 2025.\nCertificate of protection (mydeposits) shows: Date deposit collected from tenant: 21 December 2023; Period of protection starts: 8 January 2024.\nI was not provided with that certificate until 24 June 2025.\nThe agent\u2019s response confirms (i) they received the deposit and (ii) the protection start date above.\n\n2. Legal position \u2014 non-compliance and liability\nUnder Section 213 Housing Act 2004 the deposit must be protected in an authorised scheme and the prescribed information provided within 30 calendar days of receipt. The mydeposits certificate itself records the deposit was not protected until 8 January 2024, meaning the deposit was held unprotected for c.18 days after receipt. Courts treat any period in which a deposit is held outside an authorised scheme as a breach regardless of subsequent late protection.\n\nAgent liability \u2014 An agent who takes receipt of a deposit is treated as having the duties of the landlord for the purposes of the 2004 Act. You therefore cannot disclaim liability by asserting you merely act on landlord instructions.\n\nPenalty entitlement \u2014 For these breaches I am entitled to pursue a statutory penalty under Section 214 Housing Act 2004 of between 1\u00d7 and 3\u00d7 the deposit. Given: (a) the deposit was held unprotected for a significant period, (b) prescribed information was issued before protection (and therefore was inaccurate at the time), and (c) the deposit certificate was only provided to me 18 months later, I am entitled to ask the court for the maximum 3\u00d7 penalty.\n\n3. Response to specific points\nA. You state the 10-working-day timeframe is a \u201cguideline rather than a statutory requirement.\u201d That is misleading and irrelevant to the legal position.\nB. You rely on the fact the deposit was protected by 8 January 2024. That does not cure the earlier failings.\nC. Your statement that you have landlord instructions not to release the deposit is noted. If you intend to pursue deductions you must register a formal dispute with mydeposits.\n\n4. What I require now\nReturn the full deposit immediately plus statutory penalty of 3\u00d7 the deposit within 14 days (by 24 October 2025). If you refuse, provide full particulars of any alleged deductions and proof of dispute registration with mydeposits.\n\n5. Next steps if you do not comply\nI will issue court proceedings for: (a) return of the deposit, (b) statutory penalty of 3\u00d7 the deposit, (c) interest and (d) recoverable legal costs. I will also file a formal complaint with The Property Ombudsman (TPO) and with mydeposits, copy to Trading Standards.",
+
+  "I am writing to formally terminate my tenancy with immediate effect.\nThis termination is due to landlord breach of statutory obligations and the fact that the property has been uninhabitable, unsafe, and non-functional from the moment I collected the keys.\n\nDespite multiple written notifications and repeated attempts to resolve matters, the property has remained unfit for occupation under the Homes (Fitness for Human Habitation) Act 2018 and the Landlord & Tenant Act 1985 (Section 11).\n\nKey issues include:\n\n1. Failure to provide essential utilities from the start of the tenancy\n- No heating at handover\n- No hot water for several days\n- Complete loss of electricity due to undisclosed prepayment meter and lack of supplier details\n- No functional broadband possible until December due to property infrastructure\n\n2. Serious safety concerns\n- Multiple external doors stiff, unsafe, and inoperable\n- Unknown individuals able to enter the grounds\n- Damp/open fireplace with water ingress\n- Hazardous rubbish left at the entrance despite being flagged in advance\n\n3. Material non-disclosure\n- Prepayment electricity meter never disclosed\n- Inventory does not state it is a prepayment meter\n- No supplier or account information provided\n- Property handed over with water supply turned off\n- Only one set of keys provided, contrary to the inventory listing\n\n4. Failure to act following repeated notice\nNo contractor attendance since Wednesday, and no communication from the managing agent despite multiple emails.\n\n5. Loss of use, financial losses, and severe disruption\nThe property has not been safe or usable. I have incurred financial losses, including lost work time, cancelled movers, and significant stress.\n\nLEGAL BASIS\nUnder the Homes (Fitness for Human Habitation) Act 2018, a property must be fit for human occupation at the start of the tenancy. This property never met that standard.\nUnder Section 11 of the Landlord & Tenant Act 1985, the landlord is responsible for ensuring working installations for electricity, heating, and water. These obligations were clearly breached.\n\nWHAT I REQUIRE NOW\n- Full refund of the rent paid for November, as the property has been uninhabitable from the start of the tenancy.\n- Full return of my deposit.\n- Confirmation that the tenancy is terminated with no penalties or deductions of any kind.\n- Confirmation of arrangements for key return.\n\nI will not be accepting partial offers or \u201cfull and final settlements\u201d that do not reflect the severity of the situation.\n\nNEXT STEPS\nPlease confirm the above in writing within 24 hours. If not received, I will file a formal complaint with The Property Ombudsman, notify Environmental Health, and seek legal recovery of losses.",
+
+  "Dear Property Management Team,\n\nI am writing regarding the ongoing boiler issue and the continuing failure by the landlord or appointed contractors to complete the repair within a reasonable timeframe.\n\nYesterday\u2019s scheduled appointment with the contractor was cancelled without any notice to us, and no engineer attended at the agreed time. This failure lies entirely with the landlord\u2019s contractor and not with us as tenants, and it has resulted in the boiler remaining in a defective state.\n\nGiven the essential nature of heating during cold weather, this continued delay is a breach of:\n- Section 11 of the Landlord and Tenant Act 1985 \u2014 duty to keep installations for space heating in proper working order.\n- Homes (Fitness for Human Habitation) Act 2018 \u2014 which requires the property to remain free from hazards and with adequate heating.\nThese obligations are statutory and cannot be delegated or avoided.\n\n1. Refusal of Landlord Attendance \u2014 Legal Basis\nThe landlord previously attempted a repair himself, but the fault persists. The relationship between myself and the landlord has significantly broken down, and his attendance would cause distress within the household \u2014 particularly as my partner has CPTSD, a protected disability under the Equality Act 2010.\n\nWe are therefore exercising our rights under:\n- Right to Quiet Enjoyment (established in case law such as Kenny v Preen)\n- Equality Act 2010 \u2013 Sections 20 & 21: A reasonable adjustment in this scenario is the use of a neutral, independent, qualified contractor, not the landlord personally.\n- Landlord & Tenant Act 1985 (s.11(6)): Access must be reasonable and appropriate \u2014 not distressing or intrusive.\n\nTherefore: We do not consent to the landlord entering our home to carry out the repair.\n\n2. Requirement for an Independent Qualified Engineer\nThe agent must now instruct a third-party, neutral, qualified heating engineer to complete the repair. This is not optional. It is the only lawful and reasonable route forward given the circumstances and professional requirements of gas and boiler work.\n\n3. Impact of Repeated Short-Notice Changes & Missed Appointments\nThe repeated short-notice appointment changes and the failure of the contractor to attend yesterday have caused significant disruption. As a self-employed individual, I rearranged my workday for the engineer\u2019s visit \u2014 only for the appointment to be cancelled without notice. This has resulted in a loss of earnings, which is directly attributable to the landlord\u2019s and agent\u2019s failure to manage the repair properly.\n\nI am formally reserving my right to pursue compensation for these losses should this matter continue to be mishandled.\n\n4. Immediate Requirements\nPlease confirm in writing:\n- That the landlord will not attend the property.\n- That the agent will instruct an independent qualified heating engineer.\n- The appointment date and time, with reasonable notice.\n- That the previous missed appointment has been logged as a failure on the contractor\u2019s/landlord\u2019s side.\n\nThis repair is now urgent, and further delay is not acceptable.",
+
+  "Dear Agent,\n\nI write further to your email dated 30 January 2026 regarding the notice served for the property.\n\nFirstly, I note your admission that the original letter contained administrative errors, specifically the incorrect reference to a prior conversation that did not occur. I also note your confirmation that the notice was issued without any prior discussion or warning.\n\nFor clarity and the record, I reiterate the following points requiring written clarification:\n\n1. Grounds for possession \u2013 The notice fails to specify whether possession is sought on the basis of sale or personal occupation. These are materially distinct grounds, each requiring factual justification. Please confirm the precise ground and the intended occupant or purchaser.\n\n2. Selective issuance \u2013 I am the only tenant in the building to have received such a notice. No explanation has been provided for this selective treatment.\n\n3. Timing and context \u2013 The notice followed shortly after my formal request for CCTV footage relating to a guest injury incident. No explanation has been provided to demonstrate that the notice is unconnected to this correspondence. I am still waiting to receive a copy of this CCTV footage.\n\n4. Landlord\u2019s capacity and intention \u2013 The property is owned by a brewery. Clarification is required as to how the brewery intends to occupy the property, or which associated individual is proposed to occupy it.\n\nI also wish to place on record that throughout my tenancy, the only issues I have raised relate to legitimate property management concerns including pest control, maintenance issues, rubbish left by previous tenants, replacement bins, and damage caused by others.\n\nFurthermore, on 17 January 2025, your office confirmed in writing that the landlord was \u201chappy to offer me a further tenancy\u201d commencing 1 May 2025, with a proposed 12-month term. That letter described me as a \u201cprofessional and reliable tenant.\u201d This confirms the tenancy was renewed and the landlord\u2019s stated intention was to continue the tenancy.\n\nRegarding the Renters\u2019 Rights Act 2025, I note your position that it is not yet in force. My reference to the Act was to highlight the legislative context and Parliament\u2019s clear intent to prevent retaliatory eviction and misuse of possession grounds.\n\nI formally request a comprehensive written response addressing all points listed, including specific clarification of the grounds for possession, the landlord\u2019s intentions, and provision of the requested CCTV footage.\n\nI reserve all rights in relation to the notice served and any subsequent actions, including the right to challenge its validity.",
+
+  "Dear Agent,\n\nI write to formally acknowledge receipt of your letter dated 30 January 2026. This is the first notification I have received regarding any intention to seek possession of the property. I have received no prior correspondence or discussion, despite your letter stating \u201cfurther to our conversation.\u201d Please confirm when this alleged conversation took place, as I have no record of it.\n\nI also note that on 30 January 2026, you emailed me separately providing statutory tenancy documents (EPC, EICR, Gas Safety Certificate, How to Rent booklet, and deposit information). That email made no reference whatsoever to any intention to seek possession, sell the property, or for the landlord to move back in.\n\nUpon receiving the letter, I contacted your office the same evening and requested to speak with you. I was advised you were unavailable and would return my call as soon as possible. Despite waiting until after office hours, I did not receive a call back.\n\nI am particularly troubled by the timing of this notice, which was issued shortly after I formally requested a copy of CCTV footage relating to an incident in which a guest was injured while leaving the property. The absence of any prior warning or discussion, combined with this timing, raises reasonable concerns that this notice may be retaliatory in nature.\n\nYour letter states that the landlord wishes either to move back into the property or sell it. Please clarify which of these applies, as they are materially different grounds. The property is owned by a brewery, and it is unclear how or why such an entity would intend to move into a small residential flat. If instead a director or associated party intends to occupy the property, please provide clarification.\n\nIf the intention is to sell the property, please explain why I am the only tenant to have received such a notice, when there are eight other tenants in the building.\n\nI also wish to place on record that I have previously experienced an attempted Section 21 eviction after raising ongoing maintenance concerns, several of which remain unresolved years later.\n\nI am aware that the Renters\u2019 Rights Act 2025 received Royal Assent on 27 October 2025 and is being implemented in stages through 2026. While not all provisions are currently in force, the Act clearly reflects Parliament\u2019s intent to prevent retaliatory eviction and misuse of possession grounds, particularly where notices follow tenant complaints.\n\nGiven the seriousness of this matter, I request a full written response addressing the points raised above as a matter of urgency. I reserve all rights in relation to the notice served and any subsequent actions, including the right to challenge its validity should satisfactory clarification not be provided."
+];
+
+var pmCaseBrief = null;
+
+function pmLoadExample(i) { document.getElementById('pmComplaintText').value = PM_EXAMPLES[i]; }
+
+function pmEsc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+function pmShowErr(id, msg) { var e = document.getElementById(id); e.textContent = msg; e.classList.add('pm-visible'); }
+function pmHideErr(id) { document.getElementById(id).classList.remove('pm-visible'); }
+function pmShowLoad(id) { document.getElementById(id).classList.add('pm-visible'); }
+function pmHideLoad(id) { document.getElementById(id).classList.remove('pm-visible'); }
+
+function pmCall(sys, usr) {
+  var key = document.getElementById('pmApiKey').value.trim();
+  if (!key) return Promise.reject(new Error('Please enter your Anthropic API key.'));
+  return fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-3-haiku-20240307', max_tokens: 2048, system: sys, messages: [{ role: 'user', content: usr }] })
+  }).then(function(r) {
+    if (!r.ok) return r.text().then(function(t) { var m = 'API error ' + r.status; try { m = JSON.parse(t).error.message || m; } catch(e){} throw new Error(m); });
+    return r.json();
+  }).then(function(d) { return d.content[0].text; });
+}
+
+function pmRenderBrief(b) {
+  var el = document.getElementById('pmBriefBody');
+  var h = '';
+  var rc = { High: 'pm-risk-high', Medium: 'pm-risk-medium', Low: 'pm-risk-low' }[b.risk_level] || 'pm-risk-medium';
+  h += '<span class="pm-risk-pill ' + rc + '">' + pmEsc(b.risk_level) + ' Risk</span>';
+  h += '<span style="margin-left:12px;font-size:13px;color:#666">' + pmEsc(b.risk_rationale) + '</span>';
+  if (b.flags && b.flags.length) { h += '<div class="pm-flags">'; b.flags.forEach(function(f) { h += '<span class="pm-flag">' + pmEsc(f) + '</span>'; }); h += '</div>'; }
+  h += '<div class="pm-summary">' + pmEsc(b.summary) + '</div>';
+  h += '<div class="pm-brief-section"><h3>Issues Identified</h3><table class="pm-table"><tr><th>Issue</th><th>Classification</th><th>Notes</th></tr>';
+  (b.issues || []).forEach(function(i) { var c = i.classification === 'real' ? 'pm-cls-real' : 'pm-cls-noise'; h += '<tr><td>' + pmEsc(i.issue) + '</td><td class="' + c + '">' + pmEsc(i.classification) + '</td><td>' + pmEsc(i.notes) + '</td></tr>'; });
+  h += '</table></div>';
+  h += '<div class="pm-brief-section"><h3>Legislation Map</h3><table class="pm-table"><tr><th>Act</th><th>Status</th><th>Applies</th><th>Note</th></tr>';
+  (b.legislation_map || []).forEach(function(l) { var c = 'pm-st-' + l.status; h += '<tr><td>' + pmEsc(l.act) + '</td><td class="' + c + '">' + pmEsc(l.status) + '</td><td>' + (l.applies ? 'Yes' : 'No') + '</td><td>' + pmEsc(l.note) + '</td></tr>'; });
+  h += '</table></div>';
+  h += '<div class="pm-brief-section"><h3>Evidence Required</h3><table class="pm-table"><tr><th>Item</th><th>System</th><th>Priority</th></tr>';
+  (b.evidence_required || []).forEach(function(e) { var c = 'pm-pri-' + e.priority; h += '<tr><td>' + pmEsc(e.item) + '</td><td>' + pmEsc(e.system) + '</td><td class="' + c + '">' + pmEsc(e.priority) + '</td></tr>'; });
+  h += '</table></div>';
+  h += '<div class="pm-brief-section"><h3>Response Points</h3><ol class="pm-response-list">';
+  (b.response_points || []).forEach(function(p) { h += '<li>' + pmEsc(p) + '</li>'; });
+  h += '</ol></div>';
+  el.innerHTML = h;
+}
+
+function pmAnalyse() {
+  var complaint = document.getElementById('pmComplaintText').value.trim();
+  if (!complaint) return pmShowErr('pmAnalyseError', 'Please paste a complaint first.');
+  pmHideErr('pmAnalyseError'); pmHideErr('pmDraftError');
+  document.getElementById('pmCaseBriefPanel').classList.remove('pm-visible');
+  document.getElementById('pmDraftSection').classList.remove('pm-visible');
+  pmCaseBrief = null;
+  var btn = document.getElementById('pmAnalyseBtn');
+  btn.disabled = true;
+  pmShowLoad('pmAnalyseLoading');
+  var sys = 'You are an expert AI assistant specialising in UK residential lettings law and complaint handling for property agents. Analyse tenant complaints and produce a structured case brief.\n\nYou know: Housing Act 2004 (s213, s214 deposit protection), Landlord and Tenant Act 1985 (s11 repairs), Homes (Fitness for Human Habitation) Act 2018, Equality Act 2010, Renters\u2019 Rights Act 2025 (Royal Assent 27 Oct 2025), Pre-Action Protocol, TPO codes of practice, mydeposits/DPS/TDS scheme rules, Kenny v Preen (quiet enjoyment), Section 21/Section 8 possession.\n\nRespond ONLY with valid JSON, no preamble, no markdown fences:\n{\n  "summary": "One sentence describing the complaint",\n  "risk_level": "High|Medium|Low",\n  "risk_rationale": "One sentence explaining risk",\n  "issues": [\n    {"issue": "description", "classification": "real|noise", "notes": "brief agent note"}\n  ],\n  "legislation_map": [\n    {"act": "act name", "status": "current|superseded|inapplicable", "applies": true, "note": "why"}\n  ],\n  "evidence_required": [\n    {"item": "what to retrieve", "system": "CRM|Maintenance|Banking|Comms|Documents", "priority": "high|medium|low"}\n  ],\n  "response_points": ["key point to address in response"],\n  "flags": ["urgent flags \u2014 court deadlines, discrimination risk, etc"]\n}';
+  pmCall(sys, 'Analyse this complaint:\n\n' + complaint).then(function(raw) {
+    pmCaseBrief = JSON.parse(raw);
+    pmRenderBrief(pmCaseBrief);
+    document.getElementById('pmCaseBriefPanel').classList.add('pm-visible');
+  }).catch(function(e) {
+    pmShowErr('pmAnalyseError', e.message);
+  }).finally(function() {
+    btn.disabled = false;
+    pmHideLoad('pmAnalyseLoading');
+  });
+}
+
+function pmDraft() {
+  if (!pmCaseBrief) return;
+  var complaint = document.getElementById('pmComplaintText').value.trim();
+  pmHideErr('pmDraftError');
+  document.getElementById('pmDraftSection').classList.remove('pm-visible');
+  var btn = document.getElementById('pmDraftBtn');
+  btn.disabled = true;
+  pmShowLoad('pmDraftLoading');
+  var sys = 'You are an expert property agent responding to a formal tenant complaint on behalf of a UK letting agency.\nWrite a professional, legally careful response letter.\n\nRules:\n- Acknowledge every genuine issue identified in the case brief\n- Do not admit liability \u2014 use measured, professional language\n- Reference legislation accurately only where it helps the agent\u2019s position\n- Request evidence or clarification where needed\n- Propose next steps (dispute registration, inspection, etc.)\n- Tone: formal, calm, factual \u2014 not defensive or dismissive\n- Sign off as: "[Agent Name], [Agency Name]" with placeholder brackets\n- Length: 250-400 words\n- Do NOT invent facts not present in the complaint or case brief\n\nReturn plain text only \u2014 a ready-to-edit letter.';
+  var usr = 'Using this case brief: ' + JSON.stringify(pmCaseBrief) + '\n\nAnd this original complaint:\n' + complaint + '\n\nWrite a professional response letter.';
+  pmCall(sys, usr).then(function(letter) {
+    document.getElementById('pmDraftText').value = letter;
+    document.getElementById('pmDraftSection').classList.add('pm-visible');
+  }).catch(function(e) {
+    pmShowErr('pmDraftError', e.message);
+  }).finally(function() {
+    btn.disabled = false;
+    pmHideLoad('pmDraftLoading');
+  });
+}
+</script>
+
+</body>
+</html>
